@@ -7,8 +7,12 @@ defmodule DroneShop.Drones.Drone do
     field(:model, :string)
     field(:type, :string)
     field(:price, :string)
+    field(:cost, :string)
     field(:image, :string)
     field(:description, :string)
+    field(:sensor, :string)
+    field(:flight_time, :string)
+    field(:link, :string)
 
     timestamps()
   end
@@ -16,7 +20,7 @@ defmodule DroneShop.Drones.Drone do
   @doc false
   def changeset(boat, attrs) do
     boat
-    |> cast(attrs, [:model, :name, :type, :price, :image, :description])
-    |> validate_required([:model, :name, :type, :price, :image, :description])
+    |> cast(attrs, [:model, :name, :type, :price, :cost, :image, :description, :sensor, :flight_time, :link])
+    |> validate_required([:model, :name, :type, :price, :cost, :image, :description, :sensor, :flight_time, :link])
   end
 end

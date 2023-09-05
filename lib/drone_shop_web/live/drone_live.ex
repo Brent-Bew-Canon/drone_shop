@@ -8,7 +8,8 @@ defmodule DroneShopWeb.DroneLive do
     socket =
       assign(socket,
         filter: %{type: "", prices: []},
-        drones: Drones.list_drones()
+        drones: Drones.list_drones(),
+        show_focused_drone: false
       )
 
     {:ok, socket}
@@ -16,25 +17,28 @@ defmodule DroneShopWeb.DroneLive do
 
   def handle_params(%{"id" => id}, _uri, socket) do
     drone = Drones.get_drone!(id)
-    {:noreply, assign(socket, selected_drone: drone, page_title: drone.name)}
+    {:noreply, assign(socket, selected_drone: drone, page_title: drone.name, show_focused_drone: true)}
   end
 
   def handle_params(_params, _uri, socket) do
-    {:noreply, assign(socket, selected_drone: hd(socket.assigns.drones))}
+    {:noreply, assign(socket, selected_drone: nil, show_focused_drone: false)}
   end
 
 
   def render(assigns) do
     ~H"""
+      <%= if @show_focused_drone == false do %>
       <h1 class="text-6xl text-center mb-10">Inventory</h1>
       <.filter_form filter={@filter} />
-      <div class="flex flex-row flex-wrap justify-center">
+      <div class="flex flex-row flex-wrap justify-center mb-16">
         <%= for drone <- @drones do %>
           <div class="max-w-sm rounded overflow-hidden shadow-lg mx-4 mt-3">
             <img class="w-full" src={drone.image}>
-            <.link phx-click="more_info"  # patch={~p"/drone?#{[id: drone.id]}"} class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-3">More Info</.link>
+            <div class="text-center mb-3">
+            <.link phx-click="more_info" patch={~p"/drone?#{[id: drone.id]}"} class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-3">More Info</.link>
+            </div>
             <div class="px-6 py-4">
-              <p class="font-bold text-xl mb-2"><%= drone.model %>
+              <p class="font-bold text-xl mb-2 text-center"><%= drone.model %>
               </p>
               <p class="text-gray-700 text-base">
                 <%= drone.description %>
@@ -43,18 +47,16 @@ defmodule DroneShopWeb.DroneLive do
           </div>
           <% end %>
       </div>
+      <% end %>
+      <%= if @show_focused_drone == true do %>
+        <.focused_drone selected_drone={@selected_drone} />
+      <% end %>
     """
-  end
-
-  def handle_event("more_info", %{"id" => id}, socket) do
-    IO.inspect(self(), label: "More Info Click")
-    drone = Drones.get_drone!(id)
-    {:noreply, assign(socket, selected_drone: drone, page_title: drone.name)}
   end
 
   def filter_form(assigns) do
     ~H"""
-    <form phx-change="filter" class="text-center mb-10">
+    <form phx-change="filter" class="text-center mb-5">
       <div class="">
         <select name="type" class="rounded-lg">
           <%= Phoenix.HTML.Form.options_for_select(
@@ -81,6 +83,47 @@ defmodule DroneShopWeb.DroneLive do
     """
   end
 
+
+  def focused_drone(assigns) do
+    ~H"""
+    <div class="flex flex-row flex-wrap justify-center mb-24">
+      <div class="max-w-2xl rounded overflow-hidden shadow-lg mx-4 mt-3">
+        <img class="w-2/3 mx-auto" src={@selected_drone.image}>
+        <div class="px-6 pb-4">
+          <p class="font-bold text-2xl mb-2 text-center"><%= @selected_drone.model %>
+          </p>
+          <p class="font-bold text-xl mb-2 text-center"><%= @selected_drone.cost %>
+          </p>
+          <p class="text-gray-700 text-base">
+            <%= @selected_drone.description %>
+          </p>
+          <p class="pt-4 text-gray-700 text-base mb-2"> <span class="font-bold">Type:</span> <%= @selected_drone.type %>
+          </p>
+          <p class="pt-4 text-gray-700 text-base mb-2"> <span class="font-bold">Sensor:</span> <%= @selected_drone.sensor %>
+          </p>
+          <p class="pt-4 text-gray-700 text-base mb-2"><span class="font-bold">Max Flight Time:</span> <%= @selected_drone.flight_time %>
+          </p>
+          <div class="mt-6 flex flex-row flex-wrap justify-center">
+            <.link phx-click="back" patch={~p"/drone"} class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mt-3 mx-2">Go Back</.link>
+            <a href={ @selected_drone.link } class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-3 mx-2">Buy Now</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  def handle_event("back", socket) do
+    IO.inspect(self(), label: "Back Click")
+    {:noreply, assign(socket, selected_drone: nil)}
+  end
+
+  def handle_event("more_info", %{"id" => id}, socket) do
+    IO.inspect(self(), label: "More Info Click")
+    drone = Drones.get_drone!(id)
+    {:noreply, assign(socket, selected_drone: drone, page_title: drone.name, show_focused_drone: true)}
+  end
+
   def handle_event("filter", %{"type" => type, "prices" => prices}, socket) do
     filter = %{type: type, prices: prices}
     drones = Drones.list_drones(filter)
@@ -101,19 +144,3 @@ defmodule DroneShopWeb.DroneLive do
     ]
   end
 end
-
-
-
-# <%= if @selected_drone do %>
-# <div class="max-w-sm rounded overflow-hidden shadow-lg mx-4 mt-3">
-#   <img class="w-full" src={@selected_drone.image}>
-#   <button phx-click="more_info" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-3">More Info</button>
-#   <div class="px-6 py-4">
-#     <p class="font-bold text-xl mb-2"><%= @selected_drone.model %>
-#     </p>
-#     <p class="text-gray-700 text-base">
-#       <%= @selected_drone.description %>
-#     </p>
-#     </div>
-# </div>
-# <% end %>
