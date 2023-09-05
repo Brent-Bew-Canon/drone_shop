@@ -1,18 +1,4 @@
-# DroneShop
+# Brent's Drone Shop
 
-To start your Phoenix server:
+My first Phoenix app that allows a user to browse a list of drones that can be filtered by relative price as well as type of drone. Allows a user to click into a drone to see more information and for the purchase link
 
-  * Run `mix setup` to install and setup dependencies
-  * Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
-
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
-
-Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
-
-## Learn more
-
-  * Official website: https://www.phoenixframework.org/
-  * Guides: https://hexdocs.pm/phoenix/overview.html
-  * Docs: https://hexdocs.pm/phoenix
-  * Forum: https://elixirforum.com/c/phoenix-forum
-  * Source: https://github.com/phoenixframework/phoenix
